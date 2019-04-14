@@ -12260,8 +12260,8 @@ ix86_get_drap_rtx (void)
   /* We must use DRAP if there are outgoing arguments on stack and
      ACCUMULATE_OUTGOING_ARGS is false.  */
   if (ix86_force_drap
-      || (cfun->machine->outgoing_args_on_stack
-	  && !ACCUMULATE_OUTGOING_ARGS))
+      /*|| (cfun->machine->outgoing_args_on_stack
+	  && !ACCUMULATE_OUTGOING_ARGS)*/)
     crtl->need_drap = true;
 
   if (stack_realign_drap)
