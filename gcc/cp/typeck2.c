@@ -1162,7 +1162,7 @@ digest_init_r (tree type, tree init, int nested, int flags,
 		 because it's ok to ignore the terminating null char that is
 		 counted in the length of the constant, but in C++ this would
 		 be invalid.  */
-	      if (size < TREE_STRING_LENGTH (stripped_init))
+	      /*if (size < TREE_STRING_LENGTH (stripped_init))
 		{
 		  permerror (loc, "initializer-string for array "
 			     "of chars is too long");
@@ -1170,7 +1170,7 @@ digest_init_r (tree type, tree init, int nested, int flags,
 		  init = build_string (size,
 				       TREE_STRING_POINTER (stripped_init));
 		  TREE_TYPE (init) = type;
-		}
+		}*/
 	    }
 	  return init;
 	}
