@@ -367,12 +367,12 @@ can_inline_edge_p (struct cgraph_edge *e, bool report,
       inlinable = false;
     }
   /* Check compatibility of target optimization options.  */
-  else if (!targetm.target_option.can_inline_p (caller->decl,
-						callee->decl))
-    {
-      e->inline_failed = CIF_TARGET_OPTION_MISMATCH;
-      inlinable = false;
-    }
+  //else if (!targetm.target_option.can_inline_p (caller->decl,
+	//					callee->decl))
+  //  {
+  //    e->inline_failed = CIF_TARGET_OPTION_MISMATCH;
+  //    inlinable = false;
+  //  }
   else if (ipa_fn_summaries->get (callee) == NULL
 	   || !ipa_fn_summaries->get (callee)->inlinable)
     {
