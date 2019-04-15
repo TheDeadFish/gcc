@@ -2758,6 +2758,10 @@ struct GTY(()) machine_function {
 
   /* During SEH output, this is non-null.  */
   struct seh_frame_state * GTY((skip(""))) seh;
+
+	/* minimum stack alignment */
+	unsigned int min_stack_alignment;
+
 };
 #endif
 

@@ -5748,6 +5748,11 @@ ix86_set_func_type (tree fndecl)
 				TYPE_ATTRIBUTES (TREE_TYPE (fndecl))))
 	    cfun->machine->no_caller_saved_registers = true;
 	}
+	
+	if (lookup_attribute ("no_stack_realign",
+			TYPE_ATTRIBUTES (TREE_TYPE (fndecl))))
+		cfun->machine->min_stack_alignment = -1;
+		
     }
 }
 
@@ -12228,6 +12233,10 @@ ix86_minimum_incoming_stack_boundary (bool sibcall)
       && DECL_FILE_SCOPE_P (current_function_decl))
     incoming_stack_boundary = MAIN_STACK_BOUNDARY;
 
+	/* function marked as no realign */
+	if ((int)(cfun->machine->min_stack_alignment) < 0)
+		incoming_stack_boundary = 128;
+		
   return incoming_stack_boundary;
 }
 
@@ -45956,6 +45965,10 @@ static const struct attribute_spec ix86_attribute_table[] =
     ix86_handle_fentry_name, NULL },
   { "cf_check", 0, 0, true, false, false, false,
     ix86_handle_fndecl_attribute, NULL },
+		
+	/* df-gcc new attributes */
+  { "no_stack_realign", 0, 0, false, true, true, false,
+    ix86_handle_no_caller_saved_registers_attribute, NULL },
 
   /* End element.  */
   { NULL, 0, 0, false, false, false, false, NULL, NULL }
