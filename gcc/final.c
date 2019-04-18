@@ -5096,6 +5096,8 @@ get_call_cgraph_rtl_info (rtx_insn *insn)
 
 /* Find hard registers used by function call instruction INSN, and return them
    in REG_SET.  Return DEFAULT_SET in REG_SET if not found.  */
+	 
+void target_update_reg_set(rtx call, HARD_REG_SET *reg_set);
 
 bool
 get_call_reg_set_usage (rtx_insn *insn, HARD_REG_SET *reg_set,
@@ -5112,7 +5114,15 @@ get_call_reg_set_usage (rtx_insn *insn, HARD_REG_SET *reg_set,
 	  return true;
 	}
     }
-
-  COPY_HARD_REG_SET (*reg_set, default_set);
+		
+	COPY_HARD_REG_SET (*reg_set, default_set);
+		
+	/* deadfish gcc hack, custom calling convention */
+	rtx call = PATTERN (insn);
+	if(call) { RTX_CODE code = GET_CODE(call);
+		if(code == SET) { code = GET_CODE(call = XEXP (call, 1)); }
+		if(code == CALL) { target_update_reg_set(call, reg_set); }
+	}
+  
   return false;
 }
