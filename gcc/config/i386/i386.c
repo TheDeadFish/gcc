@@ -4867,6 +4867,14 @@ ix86_conditional_register_usage (void)
     for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
       if (!fixed_regs[i] && !ix86_function_value_regno_p (i))
 	call_used_regs[i] = 0;
+	
+	/* watcom calling convention */
+	if(cfun) {
+		unsigned int ccvt_cfun = ix86_get_callcvt (TREE_TYPE (cfun->decl));
+		if(ccvt_cfun & IX86_CALLCVT_WATCOM) {
+			call_used_regs[CX_REG] = 0; 
+			call_used_regs[DX_REG] = 0; }
+	}
 
   /* For 32-bit targets, squash the REX registers.  */
   if (! TARGET_64BIT)
@@ -5905,6 +5913,8 @@ ix86_set_current_function (tree fndecl)
   ix86_previous_fndecl = fndecl;
 
   static bool prev_no_caller_saved_registers;
+	static unsigned int prev_ccvt_cfun;
+	unsigned int ccvt_cfun = ix86_get_callcvt (TREE_TYPE (fndecl));
 
   /* 64-bit MS and SYSV ABI have different set of call used registers.
      Avoid expensive re-initialization of init_regs each time we switch
@@ -5918,6 +5928,8 @@ ix86_set_current_function (tree fndecl)
   else if (prev_no_caller_saved_registers
 	   != cfun->machine->no_caller_saved_registers)
     reinit_regs ();
+	else if((prev_ccvt_cfun ^ ccvt_cfun) & IX86_CALLCVT_WATCOM)
+		reinit_regs ();
 
   if (cfun->machine->func_type != TYPE_NORMAL
       || cfun->machine->no_caller_saved_registers)
@@ -5953,6 +5965,7 @@ ix86_set_current_function (tree fndecl)
 
   prev_no_caller_saved_registers
     = cfun->machine->no_caller_saved_registers;
+	prev_ccvt_cfun = ccvt_cfun;
 }
 
 
@@ -6304,6 +6317,12 @@ ix86_function_ok_for_sibcall (tree decl, tree exp)
     }
   else
     {
+		/* check compatible calling convention */
+		unsigned int ccvt_cfun = ix86_get_callcvt (TREE_TYPE (cfun->decl));
+		unsigned int ccvt_targ = ix86_get_callcvt (type);
+		if((ccvt_cfun ^ ccvt_targ) & IX86_CALLCVT_WATCOM)
+			return false;
+		
       /* If this call is indirect, we'll need to be able to use a
 	 call-clobbered register for the address of the target function.
 	 Make sure that all such registers are not used for passing
@@ -6529,6 +6548,8 @@ ix86_get_callcvt (const_tree type)
 	ret |= IX86_CALLCVT_FASTCALL;
       else if (lookup_attribute ("thiscall", attrs))
 	ret |= IX86_CALLCVT_THISCALL;
+      else if (lookup_attribute ("watcom", attrs))
+	ret |= IX86_CALLCVT_WATCOM;
 
       /* Regparam isn't allowed for thiscall and fastcall.  */
       if ((ret & (IX86_CALLCVT_THISCALL | IX86_CALLCVT_FASTCALL)) == 0)
@@ -6610,6 +6631,8 @@ ix86_function_regparm (const_tree type, const_tree decl)
     return 2;
   else if ((ccvt & IX86_CALLCVT_THISCALL) != 0)
     return 1;
+	else if ((ccvt & IX86_CALLCVT_WATCOM) != 0)
+		return 4;
 
   /* Use register calling convention for local functions when possible.  */
   if (decl
@@ -7322,6 +7345,11 @@ init_cumulative_args (CUMULATIVE_ARGS *cum,  /* Argument info to initialize */
 	    {
 	      cum->nregs = 2;
 	      cum->fastcall = 1;
+	    }
+	  else if ((ccvt & IX86_CALLCVT_WATCOM) != 0)
+	    {
+	      cum->nregs = 4;
+	      cum->fastcall = 2;
 	    }
 	  else
 	    cum->nregs = ix86_function_regparm (fntype, fndecl);
@@ -8482,6 +8510,17 @@ ix86_function_arg_advance (cumulative_args_t cum_v, machine_mode mode,
     the preceding args and about the function being called.
    NAMED is nonzero if this argument is a named parameter
     (otherwise it is an extra parameter matching an ellipsis).  */
+		
+		
+void call_used_clear(int i) { 
+	call_used_regs[i] = 0;
+	CLEAR_HARD_REG_BIT (call_used_reg_set, i); 
+}
+
+void call_used_set(int i) { 
+	call_used_regs[i] = 1;
+	SET_HARD_REG_BIT (call_used_reg_set, i); 
+}
 
 static rtx
 function_arg_32 (CUMULATIVE_ARGS *cum, machine_mode mode,
@@ -8531,8 +8570,14 @@ pass_in_reg:
 		  || (type && AGGREGATE_TYPE_P (type)))
 	        break;
 
+			if(cum->fastcall == 2) {
+				if(regno & 2) regno ^= 1;
+				if(!cum->caller)
+					call_used_set(regno);
+			}
+			
 	      /* ECX not EAX is the first allocated register.  */
-	      if (regno == AX_REG)
+	    else  if (regno == AX_REG)
 		regno = CX_REG;
 	    }
 	  return gen_rtx_REG (mode, regno);
@@ -28371,6 +28416,23 @@ construct_plt_address (rtx symbol)
   return tmp;
 }
 
+void target_update_reg_set(rtx call, HARD_REG_SET *reg_set)
+{
+	rtx fnaddr = XEXP (call, 0);
+	if (GET_CODE (XEXP (fnaddr, 0)) != SYMBOL_REF) return;
+	tree fndecl = SYMBOL_REF_DECL (XEXP (fnaddr, 0));
+	if(!fndecl) return;
+
+	if(lookup_attribute ("watcom",
+	TYPE_ATTRIBUTES (TREE_TYPE (fndecl)))) {
+		CLEAR_HARD_REG_BIT (*reg_set, DX_REG); 
+		CLEAR_HARD_REG_BIT (*reg_set, CX_REG); 
+	} else {
+		SET_HARD_REG_BIT (*reg_set, DX_REG); 
+		SET_HARD_REG_BIT (*reg_set, CX_REG); 
+	}
+}
+
 rtx_insn *
 ix86_expand_call (rtx retval, rtx fnaddr, rtx callarg1,
 		  rtx callarg2,
@@ -30123,7 +30185,7 @@ ix86_static_chain (const_tree fndecl_or_type, bool incoming_p)
 	     We are using for abi-compatibility EAX.  */
 	  regno = AX_REG;
 	}
-      else if (ix86_function_regparm (fntype, fndecl) == 3)
+      else if (ix86_function_regparm (fntype, fndecl) >= 3)
 	{
 	  /* For regparm 3, we have no free call-clobbered registers in
 	     which to store the static chain.  In order to implement this,
@@ -45969,6 +46031,8 @@ static const struct attribute_spec ix86_attribute_table[] =
 	/* df-gcc new attributes */
   { "no_stack_realign", 0, 0, false, true, true, false,
     ix86_handle_no_caller_saved_registers_attribute, NULL },
+  { "watcom",  0, 0, false, true,  true,  true, 
+		ix86_handle_cconv_attribute, NULL },
 
   /* End element.  */
   { NULL, 0, 0, false, false, false, false, NULL, NULL }
