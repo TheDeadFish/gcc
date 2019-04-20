@@ -28427,9 +28427,6 @@ void target_update_reg_set(rtx call, HARD_REG_SET *reg_set)
 	TYPE_ATTRIBUTES (TREE_TYPE (fndecl)))) {
 		CLEAR_HARD_REG_BIT (*reg_set, DX_REG); 
 		CLEAR_HARD_REG_BIT (*reg_set, CX_REG); 
-	} else {
-		SET_HARD_REG_BIT (*reg_set, DX_REG); 
-		SET_HARD_REG_BIT (*reg_set, CX_REG); 
 	}
 }
 
@@ -28453,6 +28450,11 @@ ix86_expand_call (rtx retval, rtx fnaddr, rtx callarg1,
     }
   else
     fndecl = NULL_TREE;
+		
+	/* get calling conventions */
+	unsigned int ccvt_cfun = ix86_get_callcvt (TREE_TYPE (cfun->decl));
+	unsigned int ccvt_targ = fndecl ? ix86_get_callcvt (TREE_TYPE (fndecl)) : 0;
+
 
   if (pop == const0_rtx)
     pop = NULL;
@@ -28622,6 +28624,11 @@ ix86_expand_call (rtx retval, rtx fnaddr, rtx callarg1,
 	    }
 	}
     }
+	else if ((ccvt_cfun & ~ccvt_targ) & IX86_CALLCVT_WATCOM)
+	{
+		clobber_reg (&use, gen_rtx_REG (SImode, DX_REG));
+		clobber_reg (&use, gen_rtx_REG (SImode, CX_REG));
+	}
 
   if (vec_len > 1)
     call = gen_rtx_PARALLEL (VOIDmode, gen_rtvec_v (vec_len, vec));
