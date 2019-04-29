@@ -13978,11 +13978,11 @@ nonnull_arg_p (const_tree arg)
   if (arg == cfun->static_chain_decl)
     return true;
 
-  /* THIS argument of method is always non-NULL.  */
+  /* THIS argument of method is always non-NULL.  
   if (TREE_CODE (TREE_TYPE (cfun->decl)) == METHOD_TYPE
       && arg == DECL_ARGUMENTS (cfun->decl)
       && flag_delete_null_pointer_checks)
-    return true;
+    return true; */
 
   /* Values passed by reference are always non-NULL.  */
   if (TREE_CODE (TREE_TYPE (arg)) == REFERENCE_TYPE
