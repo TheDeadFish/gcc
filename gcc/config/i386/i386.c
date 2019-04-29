@@ -7233,6 +7233,10 @@ init_cumulative_args (CUMULATIVE_ARGS *cum,  /* Argument info to initialize */
   struct cgraph_node *target = NULL;
 
   memset (cum, 0, sizeof (*cum));
+	
+	if(caller) {
+		cfun->machine->call_arg_regs = 0;  }
+	
 
   if (fndecl)
     {
@@ -8574,6 +8578,8 @@ pass_in_reg:
 				if(regno & 2) regno ^= 1;
 				if(!cum->caller)
 					call_used_set(regno);
+				else { cfun->machine->
+					call_arg_regs |= 1<<regno; }
 			}
 			
 	      /* ECX not EAX is the first allocated register.  */
@@ -28624,10 +28630,12 @@ ix86_expand_call (rtx retval, rtx fnaddr, rtx callarg1,
 	    }
 	}
     }
-	else if ((ccvt_cfun & ~ccvt_targ) & IX86_CALLCVT_WATCOM)
-	{
-		clobber_reg (&use, gen_rtx_REG (SImode, DX_REG));
-		clobber_reg (&use, gen_rtx_REG (SImode, CX_REG));
+	else {
+		unsigned int call_arg_regs = cfun->machine->call_arg_regs;
+		if ((ccvt_cfun & ~ccvt_targ) & IX86_CALLCVT_WATCOM)
+			call_arg_regs |=	(1<<CX_REG) | (1<<DX_REG);
+		for(int i = 1; i < 8; i++) { if(call_arg_regs & (1<<i))
+			clobber_reg (&use, gen_rtx_REG (SImode, i)); }
 	}
 
   if (vec_len > 1)

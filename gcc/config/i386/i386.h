@@ -2759,8 +2759,9 @@ struct GTY(()) machine_function {
   /* During SEH output, this is non-null.  */
   struct seh_frame_state * GTY((skip(""))) seh;
 
-	/* minimum stack alignment */
+	/* df-gcc extras */
 	unsigned int min_stack_alignment;
+  unsigned int call_arg_regs;
 
 };
 #endif
