@@ -5928,7 +5928,8 @@ ix86_set_current_function (tree fndecl)
   else if (prev_no_caller_saved_registers
 	   != cfun->machine->no_caller_saved_registers)
     reinit_regs ();
-	else if((prev_ccvt_cfun ^ ccvt_cfun) & IX86_CALLCVT_WATCOM)
+	else if(((prev_ccvt_cfun ^ ccvt_cfun)
+		| ccvt_cfun) & IX86_CALLCVT_WATCOM)
 		reinit_regs ();
 
   if (cfun->machine->func_type != TYPE_NORMAL
