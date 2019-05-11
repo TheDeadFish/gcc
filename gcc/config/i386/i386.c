@@ -6321,8 +6321,13 @@ ix86_function_ok_for_sibcall (tree decl, tree exp)
 		/* check compatible calling convention */
 		unsigned int ccvt_cfun = ix86_get_callcvt (TREE_TYPE (cfun->decl));
 		unsigned int ccvt_targ = ix86_get_callcvt (type);
-		if((ccvt_cfun ^ ccvt_targ) & IX86_CALLCVT_WATCOM)
+		/* if((ccvt_cfun ^ ccvt_targ) & IX86_CALLCVT_WATCOM)
+		 dfgcc: todo - make this work properly
+		 gcc really does not like it when the save registers don't match */
+		if((ccvt_cfun | ccvt_targ) & IX86_CALLCVT_WATCOM)
 			return false;
+			
+		
 		
       /* If this call is indirect, we'll need to be able to use a
 	 call-clobbered register for the address of the target function.
