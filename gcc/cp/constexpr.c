@@ -4615,11 +4615,11 @@ cxx_eval_constant_expression (const constexpr_ctx *ctx, tree t,
     case NOP_EXPR:
       if (REINTERPRET_CAST_P (t))
 	{
-	  if (!ctx->quiet)
-	    error_at (EXPR_LOC_OR_LOC (t, input_location),
-		      "a reinterpret_cast is not a constant expression");
-	  *non_constant_p = true;
-	  return t;
+	  //if (!ctx->quiet)
+	  //  error_at (EXPR_LOC_OR_LOC (t, input_location),
+		//      "a reinterpret_cast is not a constant expression");
+	  //*non_constant_p = true;
+	 // return t;
 	}
       /* FALLTHROUGH.  */
     case CONVERT_EXPR:
