@@ -407,6 +407,8 @@ i386_pe_unique_section (tree decl, int reloc)
     prefix = ".text$";
   else if (decl_readonly_section (decl, reloc))
     prefix = ".rdata$";
+  else if (bss_initializer_p (decl))
+    prefix = ".bss$";
   else
     prefix = ".data$";
   len = strlen (name) + strlen (prefix);
