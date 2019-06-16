@@ -3166,6 +3166,7 @@ expand_asm_stmt (gasm *stmt)
 	  || is_inout
 	  || TREE_ADDRESSABLE (type))
 	{
+DF_ASM_OPTIMIZE:
 	  op = expand_expr (val, NULL_RTX, VOIDmode,
 			    !allows_reg ? EXPAND_MEMORY : EXPAND_WRITE);
 	  if (MEM_P (op))
@@ -3193,6 +3194,13 @@ expand_asm_stmt (gasm *stmt)
 	}
       else
 	{
+		// deadfish gcc: optimization hack
+		// the top branch is more efficient but does not work
+		// for all cases, we shall use it when we think we can 
+		// get away with it, this will probably bite use as some point
+		if((POINTER_TYPE_P(type) || INTEGRAL_TYPE_P(type))
+		&& allows_reg) { goto DF_ASM_OPTIMIZE; }
+	
 	  op = assign_temp (type, 0, 1);
 	  op = validize_mem (op);
 	  if (!MEM_P (op) && TREE_CODE (val) == SSA_NAME)
