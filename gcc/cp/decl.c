@@ -4747,9 +4747,9 @@ fixup_anonymous_aggr (tree t)
 	    type = TREE_TYPE (field);
 	    if (CLASS_TYPE_P (type))
 	      {
-		if (TYPE_NEEDS_CONSTRUCTING (type))
-		  error ("member %q+#D with constructor not allowed "
-			 "in anonymous aggregate", field);
+		//if (TYPE_NEEDS_CONSTRUCTING (type))
+		 // error ("member %q+#D with constructor not allowed "
+		//	 "in anonymous aggregate", field);
 		if (TYPE_HAS_NONTRIVIAL_DESTRUCTOR (type))
 		  error ("member %q+#D with destructor not allowed "
 			 "in anonymous aggregate", field);
