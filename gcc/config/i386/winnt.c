@@ -460,6 +460,8 @@ i386_pe_section_type_flags (tree decl, const char *, int reloc)
   else
     {
       flags = SECTION_WRITE;
+      if(bss_initializer_p (decl))
+        flags |= SECTION_BSS;
 
       if (decl && TREE_CODE (decl) == VAR_DECL
 	  && lookup_attribute ("shared", DECL_ATTRIBUTES (decl)))
@@ -493,7 +495,9 @@ i386_pe_asm_named_section (const char *name, unsigned int flags,
     {
       if (flags & SECTION_CODE)
         *f++ = 'x';
-      if (flags & SECTION_WRITE)
+			if(flags & SECTION_BSS)
+				*f++ = 'b';
+      else if (flags & SECTION_WRITE)
         *f++ = 'w';
       if (flags & SECTION_PE_SHARED)
         *f++ = 's';
