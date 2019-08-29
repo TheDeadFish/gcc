@@ -28428,17 +28428,19 @@ construct_plt_address (rtx symbol)
   return tmp;
 }
 
-void target_update_reg_set(rtx call, HARD_REG_SET *reg_set)
+void
+ix86_remove_extra_call_preserved_regs (rtx_insn *insn,
+					  HARD_REG_SET *return_set)
 {
-	rtx fnaddr = XEXP (call, 0);
+	rtx fnaddr = XEXP (get_call_rtx_from (insn), 0);
 	if (GET_CODE (XEXP (fnaddr, 0)) != SYMBOL_REF) return;
 	tree fndecl = SYMBOL_REF_DECL (XEXP (fnaddr, 0));
 	if(!fndecl) return;
 
 	if(lookup_attribute ("watcom",
 	TYPE_ATTRIBUTES (TREE_TYPE (fndecl)))) {
-		CLEAR_HARD_REG_BIT (*reg_set, DX_REG); 
-		CLEAR_HARD_REG_BIT (*reg_set, CX_REG); 
+		CLEAR_HARD_REG_BIT (*return_set, DX_REG); 
+		CLEAR_HARD_REG_BIT (*return_set, CX_REG); 
 	}
 }
 
@@ -52094,6 +52096,10 @@ ix86_run_selftests (void)
 #undef TARGET_GET_MULTILIB_ABI_NAME
 #define TARGET_GET_MULTILIB_ABI_NAME \
   ix86_get_multilib_abi_name
+	
+#undef TARGET_REMOVE_EXTRA_CALL_PRESERVED_REGS
+#define TARGET_REMOVE_EXTRA_CALL_PRESERVED_REGS \
+  ix86_remove_extra_call_preserved_regs
 
 #if CHECKING_P
 #undef TARGET_RUN_TARGET_SELFTESTS
