@@ -6838,7 +6838,7 @@ ix86_return_pops_args (tree fundecl, tree funtype, poly_int64 size)
   ccvt = ix86_get_callcvt (funtype);
 
   if ((ccvt & (IX86_CALLCVT_STDCALL | IX86_CALLCVT_FASTCALL
-	       | IX86_CALLCVT_THISCALL)) != 0
+	       | IX86_CALLCVT_THISCALL | IX86_CALLCVT_WATCOM)) != 0
       && ! stdarg_p (funtype))
     return size;
 
