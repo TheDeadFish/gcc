@@ -1656,6 +1656,7 @@ typedef struct ix86_args {
   enum calling_abi call_abi;	/* Set to SYSV_ABI for sysv abi. Otherwise
  				   MS_ABI for ms abi.  */
   tree decl;			/* Callee decl.  */
+  char call_args_reg[8];		/* fastcall registers */
 } CUMULATIVE_ARGS;
 
 /* Initialize a variable CUM of type CUMULATIVE_ARGS
