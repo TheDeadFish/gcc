@@ -6538,7 +6538,7 @@ ix86_get_callcvt (const_tree type)
 {
   unsigned int ret = 0;
   bool is_stdarg;
-  tree attrs;
+  tree attrs, attr;
 
   if (TARGET_64BIT)
     return IX86_CALLCVT_CDECL;
@@ -6554,9 +6554,18 @@ ix86_get_callcvt (const_tree type)
 	ret |= IX86_CALLCVT_FASTCALL;
       else if (lookup_attribute ("thiscall", attrs))
 	ret |= IX86_CALLCVT_THISCALL;
-      else if ((lookup_attribute ("watcom", attrs))
-        || (lookup_attribute ("watcomaux", attrs)))
-	ret |= IX86_CALLCVT_WATCOM;
+	
+      /* df-mod: watcom calling convension */
+      else if (lookup_attribute ("watcom", attrs))
+	ret |= IX86_CALLCVT_WATCOM | IX86_CALLCVT_STDCALL;
+      else if ((attr = lookup_attribute ("watcomaux", attrs)))
+	{
+	  ret |= IX86_CALLCVT_WATCOM;
+	  const char* regs = TREE_STRING_POINTER (
+	    TREE_VALUE (TREE_VALUE (attr)));
+	  if(regs[0] != '!')
+	    ret |= IX86_CALLCVT_STDCALL;
+	}
 
       /* Regparam isn't allowed for thiscall and fastcall.  */
       if ((ret & (IX86_CALLCVT_THISCALL | IX86_CALLCVT_FASTCALL)) == 0)
@@ -6839,7 +6848,7 @@ ix86_return_pops_args (tree fundecl, tree funtype, poly_int64 size)
   ccvt = ix86_get_callcvt (funtype);
 
   if ((ccvt & (IX86_CALLCVT_STDCALL | IX86_CALLCVT_FASTCALL
-	       | IX86_CALLCVT_THISCALL | IX86_CALLCVT_WATCOM)) != 0
+	       | IX86_CALLCVT_THISCALL)) != 0
       && ! stdarg_p (funtype))
     return size;
 
@@ -7231,27 +7240,29 @@ ix86_init_pic_reg (void)
 	 
 void init_watcomaux(CUMULATIVE_ARGS *cum, tree fntype)
 {
-	cum->fastcall = 2;
-	
-	// get register string
-	const char* regs = "adbc";
-	tree attr = lookup_attribute ("watcomaux",
-		TYPE_ATTRIBUTES (fntype));
-	if(attr) { regs = TREE_STRING_POINTER (
-		TREE_VALUE (TREE_VALUE (attr))); }	
-		
-	// parse register string
-	#define MXX1(x, y) case x: cum-> \
-		call_args_reg[cum->nregs] = y##_REG; break;
-	for(cum->nregs = 0; cum->nregs < 8; cum->nregs++) {
-	switch(regs[cum->nregs]) {
-		MXX1('a', AX) MXX1('b', BX) MXX1('c', CX) 
-		MXX1('d', DX) MXX1('S', SI) MXX1('D', DI)
-		default: goto BREAK_FOR; }}
+  cum->fastcall = 2;
+  
+  // get register string
+  const char* regs = "adbc";
+  tree attr = lookup_attribute ("watcomaux",
+    TYPE_ATTRIBUTES (fntype));
+  if(attr) { regs = TREE_STRING_POINTER (
+    TREE_VALUE (TREE_VALUE (attr))); 
+    if(regs[0] == '!') regs++;
+  }
+	  
+  // parse register string
+  #define MXX1(x, y) case x: cum-> \
+	  call_args_reg[cum->nregs] = y##_REG; break;
+  for(cum->nregs = 0; cum->nregs < 8; cum->nregs++) {
+  switch(regs[cum->nregs]) {
+    MXX1('a', AX) MXX1('b', BX) MXX1('c', CX) 
+    MXX1('d', DX) MXX1('S', SI) MXX1('D', DI)
+    default: goto BREAK_FOR; }}
 		
 BREAK_FOR:
-	if(regs[cum->nregs])
-		error ("watcomaux invalid");
+  if(regs[cum->nregs])
+    error ("watcomaux invalid");
 }
 
 void
