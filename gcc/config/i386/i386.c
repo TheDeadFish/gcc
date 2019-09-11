@@ -7253,12 +7253,15 @@ void init_watcomaux(CUMULATIVE_ARGS *cum, tree fntype)
 	  
   // parse register string
   #define MXX1(x, y) case x: cum-> \
-	  call_args_reg[cum->nregs] = y##_REG; break;
+    call_args_reg[cum->nregs] = y##_REG; break;
   for(cum->nregs = 0; cum->nregs < 8; cum->nregs++) {
-  switch(regs[cum->nregs]) {
-    MXX1('a', AX) MXX1('b', BX) MXX1('c', CX) 
-    MXX1('d', DX) MXX1('S', SI) MXX1('D', DI)
-    default: goto BREAK_FOR; }}
+    switch(regs[cum->nregs]) {
+      MXX1('a', AX) MXX1('b', BX) MXX1('c', CX) 
+      MXX1('d', DX) MXX1('S', SI) MXX1('D', DI)
+      default: goto BREAK_FOR; }
+    if(regs[cum->nregs+1] == '#') { regs++;
+      cum->call_args_reg[cum->nregs] |= 0x80; }
+  }
 		
 BREAK_FOR:
   if(regs[cum->nregs])
@@ -8616,13 +8619,12 @@ pass_in_reg:
 		  || (type && AGGREGATE_TYPE_P (type)))
 	        break;
 
-			if(cum->fastcall == 2) {
-				regno = cum->call_args_reg[regno];
-				if(!cum->caller)
-					call_used_set(regno);
-				else { cfun->machine->
-					call_arg_regs |= 1<<regno; }
-			}
+	      if(cum->fastcall == 2) {
+		regno = cum->call_args_reg[regno];
+		if(regno & 0x80) regno &= 0x7F;
+		else if(!cum->caller) call_used_set(regno);
+		else cfun->machine->call_arg_regs |= 1<<regno;
+	      }
 			
 	      /* ECX not EAX is the first allocated register.  */
 	    else  if (regno == AX_REG)
