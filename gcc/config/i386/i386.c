@@ -6557,14 +6557,14 @@ ix86_get_callcvt (const_tree type)
 	
       /* df-mod: watcom calling convension */
       else if (lookup_attribute ("watcom", attrs))
-	ret |= IX86_CALLCVT_WATCOM | IX86_CALLCVT_STDCALL;
+	ret |= IX86_CALLCVT_WATCOM | 0x80;
       else if ((attr = lookup_attribute ("watcomaux", attrs)))
 	{
 	  ret |= IX86_CALLCVT_WATCOM;
 	  const char* regs = TREE_STRING_POINTER (
 	    TREE_VALUE (TREE_VALUE (attr)));
 	  if(regs[0] != '!')
-	    ret |= IX86_CALLCVT_STDCALL;
+	    ret |= 0x80;
 	}
 
       /* Regparam isn't allowed for thiscall and fastcall.  */
@@ -6848,7 +6848,7 @@ ix86_return_pops_args (tree fundecl, tree funtype, poly_int64 size)
   ccvt = ix86_get_callcvt (funtype);
 
   if ((ccvt & (IX86_CALLCVT_STDCALL | IX86_CALLCVT_FASTCALL
-	       | IX86_CALLCVT_THISCALL)) != 0
+	       | IX86_CALLCVT_THISCALL | 0x80)) != 0
       && ! stdarg_p (funtype))
     return size;
 
