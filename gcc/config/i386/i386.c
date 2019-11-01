@@ -17542,7 +17542,7 @@ put_condition_code (enum rtx_code code, machine_mode mode, bool reverse,
 	  suffix = "a";
 	  break;
 	case E_CCCmode:
-	  suffix = "c";
+	  suffix = fp ? "b" : "c";
 	  break;
 	case E_CCOmode:
 	  suffix = "o";
@@ -17566,7 +17566,7 @@ put_condition_code (enum rtx_code code, machine_mode mode, bool reverse,
 	  suffix = "na";
 	  break;
 	case E_CCCmode:
-	  suffix = "nc";
+	  suffix = fp ? "nb" : "nc";
 	  break;
 	case E_CCOmode:
 	  suffix = "no";
