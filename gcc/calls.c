@@ -524,8 +524,8 @@ emit_call_1 (rtx funexp, tree fntree ATTRIBUTE_UNUSED, tree fndecl ATTRIBUTE_UNU
       add_args_size_note (call_insn, stack_pointer_delta);
 
       /* If popup is needed, stack realign must use DRAP  */
-      if (SUPPORTS_STACK_ALIGNMENT)
-        crtl->need_drap = true;
+      /*if (SUPPORTS_STACK_ALIGNMENT)
+        crtl->need_drap = true; */
     }
   /* For noreturn calls when not accumulating outgoing args force
      REG_ARGS_SIZE note to prevent crossjumping of calls with different
