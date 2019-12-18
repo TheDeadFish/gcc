@@ -97,6 +97,13 @@ along with GCC; see the file COPYING3.  If not see
 
 #include "x86-tune-costs.h"
 
+#define optimize_function_for_size_p(cfun) 0
+#define optimize_function_for_speed_p(cfun) 1
+#define optimize_insn_for_speed_p() 1
+#define optimize_insn_for_size_p() 0
+
+
+
 static rtx legitimize_dllimport_symbol (rtx, bool);
 static rtx legitimize_pe_coff_extern_decl (rtx, bool);
 static rtx legitimize_pe_coff_symbol (rtx, bool);
