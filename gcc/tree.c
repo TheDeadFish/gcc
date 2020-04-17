@@ -14745,7 +14745,9 @@ nonnull_arg_p (const_tree arg)
   /* THIS argument of method is always non-NULL.  */
   if (TREE_CODE (TREE_TYPE (cfun->decl)) == METHOD_TYPE
       && arg == DECL_ARGUMENTS (cfun->decl)
-      && flag_delete_null_pointer_checks)
+      && flag_delete_null_pointer_checks
+      /* DFSW: allow null pointer in class method */
+      && !lookup_attribute ("null_this", DECL_ATTRIBUTES (cfun->decl)))
     return true;
 
   /* Values passed by reference are always non-NULL.  */

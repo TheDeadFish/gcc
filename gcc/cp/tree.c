@@ -4435,6 +4435,18 @@ handle_likeliness_attribute (tree *node, tree name, tree args,
     return error_mark_node;
 }
 
+
+/* DFSW: Handle [[null_this]] attribute, prevents deletions of 
+  null pointer check on method this pointer. */
+
+static tree
+handle_null_this_attribute (tree* /*node*/, tree /*name*/, tree /*args*/,
+			    int /*flags*/, bool* /*no_add_attrs*/)
+{
+  return NULL_TREE;
+}
+
+
 /* Table of valid C++ attributes.  */
 const struct attribute_spec cxx_attribute_table[] =
 {
@@ -4462,6 +4474,8 @@ const struct attribute_spec std_attribute_table[] =
     handle_likeliness_attribute, attr_cold_hot_exclusions },
   { "unlikely", 0, 0, false, false, false, false,
     handle_likeliness_attribute, attr_cold_hot_exclusions },
+  { "null_this", 0, 0, false, false, false, false,
+    handle_null_this_attribute, NULL },
   { NULL, 0, 0, false, false, false, false, NULL, NULL }
 };
 
