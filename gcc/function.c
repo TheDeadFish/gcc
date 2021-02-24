@@ -3716,7 +3716,8 @@ assign_parms (tree fndecl)
 	      if (crtl->stack_alignment_estimated < align)
 		{
 		  gcc_assert (!crtl->stack_realign_processed);
-		  crtl->stack_alignment_estimated = align;
+                  // dfsw: why does this even here?
+		  //crtl->stack_alignment_estimated = align;
 		}
 	    }
 	}
